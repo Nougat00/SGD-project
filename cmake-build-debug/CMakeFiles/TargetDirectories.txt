@@ -1,0 +1,3 @@
+C:/Users/Bartosz Laskowski/CLionProjects/SGD/cmake-build-debug/CMakeFiles/SGD-project.dir
+C:/Users/Bartosz Laskowski/CLionProjects/SGD/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/Bartosz Laskowski/CLionProjects/SGD/cmake-build-debug/CMakeFiles/rebuild_cache.dir

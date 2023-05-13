@@ -1,10 +1,8 @@
 #include <SDL.h>
 #include <SDL_image.h>
-#include <iostream>
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
-
 
 class Lander {
 public:
@@ -22,15 +20,12 @@ public:
 
     void render(SDL_Renderer *renderer, SDL_Texture *texture);
 
-    SDL_Rect getDst();
-
 private:
     double x, y;
     double vx, vy;
     double angle;
     double throttle;
     double fuel;
-    SDL_Rect src;
     SDL_Rect dst;
 };
 
@@ -72,10 +67,6 @@ void Lander::handleEvent(SDL_Event &e) {
     }
 }
 
-SDL_Rect Lander::getDst() {
-    return dst;
-}
-
 void Lander::gravity() {
     double dt = 0.01;
     double gravity = 9.81;
@@ -103,32 +94,22 @@ void Lander::land() {
     y = y;
 }
 
-SDL_Rect rect(int h, int w, int x, int y) {
-    SDL_Rect rect1;
-    rect1.h = h;
-    rect1.w = w;
-    rect1.x = x;
-    rect1.y = y;
-    return rect1;
-}
-
 void Lander::update(SDL_Rect *rect1) {
     if (SDL_HasIntersection(rect1, &dst) == SDL_TRUE) {
-        std::cout << "test" << std::endl;
+        land();
     } else { gravity(); }
 }
 
 SDL_Texture *texturer(const char *path, SDL_Renderer *renderer) {
     SDL_Surface *surface = IMG_Load(path);
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
     return texture;
 }
 
-
 void Lander::render(SDL_Renderer *renderer, SDL_Texture *texture) {
-    src = rect(480, 640, 0, 0);
-    dst = rect(50, 50, x, y);
-    SDL_RenderCopy(renderer, texture, &src, &dst);
+    dst = {int(x), int(y), 50, 50};
+    SDL_RenderCopy(renderer, texture, NULL, &dst);
 }
 
 int main(int argc, char *argv[]) {
@@ -137,9 +118,8 @@ int main(int argc, char *argv[]) {
                                           SDL_WINDOW_SHOWN);
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-    SDL_Rect bg = rect(480, 640, 0, 0);
-    SDL_Rect hillsSrc = rect(10, 640, 0, 0);
-    SDL_Rect hillsDes = rect(10, 640, 0, 470);
+    SDL_Rect bg = {0, 0, 640, 480};
+    SDL_Rect hillsDes = {0, 470, 640, 10};
     SDL_Texture *bgTexture = texturer("assets/bg.png", renderer);
     SDL_Texture *hillsTexture = texturer("assets/floor.png", renderer);
     SDL_Texture *shipTexture = texturer("assets/ship.png", renderer);
@@ -155,9 +135,9 @@ int main(int argc, char *argv[]) {
             lander.handleEvent(e);
         }
         SDL_RenderClear(renderer);
-        SDL_RenderCopy(renderer, bgTexture, &bg, &bg);
-        SDL_RenderCopy(renderer, hillsTexture, &hillsSrc, &hillsDes);
-        lander.update(&hillsSrc);
+        SDL_RenderCopy(renderer, bgTexture, NULL, &bg);
+        SDL_RenderCopy(renderer, hillsTexture, NULL, &hillsDes);
+        lander.update(&hillsDes);
         SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
         lander.render(renderer, shipTexture);
         SDL_RenderPresent(renderer);

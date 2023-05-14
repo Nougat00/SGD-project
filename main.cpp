@@ -1,5 +1,6 @@
 #include <SDL.h>
 #include <SDL_image.h>
+#include <iostream>
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
@@ -12,7 +13,7 @@ public:
 
     void handleEvent(SDL_Event &e);
 
-    void update(SDL_Rect *rect1);
+    void update(SDL_Rect *rect1, SDL_Renderer* renderer, SDL_Rect bg, SDL_Texture *gameoverTexture, SDL_Texture *winTexture);
 
     void land();
 
@@ -71,7 +72,7 @@ void Lander::gravity() {
     double dt = 0.01;
     double gravity = 9.81;
     double mass = 1000;
-    double thrust = 20000 * throttle;
+    double thrust = 25000 * throttle;
     double burnRate = 1;
     double burn = burnRate * throttle * dt;
     fuel -= burn;
@@ -94,17 +95,22 @@ void Lander::land() {
     y = y;
 }
 
-void Lander::update(SDL_Rect *rect1) {
-    if (SDL_HasIntersection(rect1, &dst) == SDL_TRUE) {
-        land();
-    } else { gravity(); }
-}
-
 SDL_Texture *texturer(const char *path, SDL_Renderer *renderer) {
     SDL_Surface *surface = IMG_Load(path);
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
     return texture;
+}
+
+void Lander::update(SDL_Rect *rect1, SDL_Renderer* renderer, SDL_Rect bg, SDL_Texture *gameoverTexture, SDL_Texture *winTexture) {
+    if (SDL_HasIntersection(rect1, &dst) == SDL_TRUE) {
+        if (vy > 10) {
+            SDL_RenderCopy(renderer, gameoverTexture, NULL, &bg);
+        } else {
+            SDL_RenderCopy(renderer, winTexture, NULL, &bg);
+            land();
+        }
+    } else { gravity(); }
 }
 
 void Lander::render(SDL_Renderer *renderer, SDL_Texture *texture) {
@@ -123,6 +129,8 @@ int main(int argc, char *argv[]) {
     SDL_Texture *bgTexture = texturer("assets/bg.png", renderer);
     SDL_Texture *hillsTexture = texturer("assets/floor.png", renderer);
     SDL_Texture *shipTexture = texturer("assets/ship.png", renderer);
+    SDL_Texture *gameoverTexture = texturer("assets/gameover.png", renderer);
+    SDL_Texture *winTexture = texturer("assets/win.png", renderer);
 
     Lander lander;
     bool quit = false;
@@ -137,14 +145,15 @@ int main(int argc, char *argv[]) {
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, bgTexture, NULL, &bg);
         SDL_RenderCopy(renderer, hillsTexture, NULL, &hillsDes);
-        lander.update(&hillsDes);
-        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
         lander.render(renderer, shipTexture);
+        lander.update(&hillsDes, renderer, bg, gameoverTexture, winTexture);
         SDL_RenderPresent(renderer);
         SDL_Delay(10);
     }
     SDL_DestroyTexture(bgTexture);
     SDL_DestroyTexture(hillsTexture);
+    SDL_DestroyTexture(gameoverTexture);
+    SDL_DestroyTexture(winTexture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
